@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Container, Row } from 'react-bootstrap'
 
 
-export default function Status() {
+export default function Status(props) {
 
     const [question, setQuestion] = useState([])
 
@@ -10,16 +10,16 @@ export default function Status() {
 
     return (
         <>
-            <Container className='d-flex justify-content-between mt-5 px-5'>
+            <Container className='d-flex justify-content-between mt-5 '>
                 <div >
-                    Question 0/15
+                    Question {props.counter}/{props.questionLength}
                 </div>
                 <div >
                     Score: 0
                 </div>
             </Container>
             {/* Fix it later to be bolder and a little bit smaller. */}
-            <hr className='mx-5 '/>
+            <hr className=' '/>
         </>
     )
 }

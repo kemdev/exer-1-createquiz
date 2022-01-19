@@ -1,100 +1,138 @@
 import React, { useEffect, useState } from "react";
 import questionJs from "./api/questions";
 import Status from "./StatusBar";
-import Form from 'react-bootstrap/Form'
+import Form from "react-bootstrap/Form";
+import { Button, Container } from "react-bootstrap";
+import { AiFillCheckCircle as CheckIcon } from 'react-icons/ai'
+import {MdOutlineNavigateNext as NextIcon} from 'react-icons/md'
 
+const result = Object.keys(questionJs).map((key) => questionJs[key]);
 
 export default function Question() {
-    const dataFromFile = {...questionJs}
-
-    const [questionData, setQuestion] = useState({});
-
-    const [counter, setCounter] = useState(0)
-
-    // const [isChecked, setIsChecked] = useState(false);
-    // new Array(currentAnswer?.length).fill(false)
-    const [checkedState, setCheckedState] = useState([])
-
-    // const [current, setCurrentAnswer] = useState()
-    // const [currentQuestion, setCurrentQuestion] = useState(0)
-    // const [currentAnswer, setCurrentAnswer] = useState()
+console.log('result is:',result)
+  // change the counter when on click
+  const [counter, setCounter] = useState(0);
 
 
-    useEffect(() => {
-       
-            const test = async () => { 
-                try{
-            //'await' has no effect on the type of this expression.ts(80007)
-                setQuestion({ ...dataFromFile});
+  // set the question according to the current counter.
+  const [question, setQuestion] = useState([...result][counter]);
+  const [answer, setAnswer] = useState([...result][counter]);
 
-                setCheckedState(Array.from(Object.entries(questionData[0][1].answers), item => false))
-     
-                // if (Object.entries(questionData)[0] !== undefined) {
-                //     setCurrentQuestion(Object.entries(questionData)[0][1].question)
-                //     setCurrentAnswer(Object.entries(questionData)[0][1].answers)
-                // }
-             
-            }catch (e) {
-                console.log('Error loadong the file,', e.message);
-            }
-        }
-        test()
-    }, []);
+  // store default solutions as an array of true and false according to the index of the solution. 
+  const [correctAnswers, setCorrectAnswers] = useState(
+    new Array(question.answers.length).fill(false)
+  );
+
+  //NOTE here is where we store the user chekbox selection
+  const [checkedBox, setCheckedBox] = useState(
+    new Array(question.answers.length).fill(false)
+  )
+
+  // Green or Red
+  const [isCorrect, setIsCorrect] = useState([])
+
+  const [toDisable, setToDisable] = useState()
 
 
+  useEffect(() => {
+    const solutionArray = question.solutions;
+    const oldAnswerArray = [...correctAnswers];
+    question.answers.map((item, index) => {
+      const solutionIndex = solutionArray[index]
+      // oldAnswerArray[solutionIndex] = true
+      if (solutionIndex) oldAnswerArray.splice(solutionIndex, 1, true)
+    });
 
-    // if (Object.entries(questionData)[counter - 1] !== undefined) {
-    //     // Only for testing
-    //     currentQuestion = Object.entries(questionData)[0][1].question
-    //     currentAnswer = Object.entries(questionData)[0][1].answers
+    
+    setCorrectAnswers([...oldAnswerArray]);
+    console.log('Correct answer solution array', solutionArray);
+    setQuestion([...result][counter])
+    
 
-    //     // console.log(currentAnswer)
-    // }
+  } , []);
 
-    console.log('IsChecked now is:', checkedState)
+  // to handle selected checkbox from the user
+  const handleOnChange = (idx) => {
+    const oldarray = [...checkedBox];
+    oldarray[idx] = !oldarray[idx];
 
-    console.log('Before calling setCheckedState: ', checkedState);
-    const handleOnChange = (idx1) => {
-        /*  const updatedCheckedState = checkedState?.map((item, index) => index === idx1 ? !item : item); */
-        const oldarray = [...checkedState]
-        oldarray[idx1] = !oldarray[idx1]
+    setCheckedBox([...oldarray]);
+    // const oldCorrect = [...isCorrect]
+    // setIsCorrect([...oldCorrect, true])
+  };
 
-        setCheckedState([...oldarray]);
+  console.log('----------------------------------------');
+  console.log('correct Answer solution', correctAnswers);
 
-        console.log('After calling setCheckedState: ', checkedState);
+  function compareAnswers(solutions, userAnswers) {
+    const temp = []
 
+    for (let i = 0; i < solutions.length; i++) {
+      solutions[i] === userAnswers[i] ? temp.push(true) : temp.push(null)
     }
 
 
-    console.log('B4 render questiondata:', questionData)
-    
-    return (
-        <div className="mx-5">
-            <Status />
-            <h2 className="mx-5">Which ones are valid HTML document type definitions?</h2>
-            <Form className="mx-5">
-                { //Object.entries(questionData)[counter][1].answer
-                    questionData && Object.keys(questionData).length ?
-                        Object.entries(questionData)[counter][1].answers.map((item, idx2) => (
-                        <div key={idx2} className="mb-3">
-                            <Form.Check
-                                label={item.text}
-                                type="checkbox"
-                                // isValid= {true}
-                                // setIsChecked(!isChecked)
-                                // currentAnswer[index] Simona code
+    // console.log('user Selected answer', temp);
+    setIsCorrect(temp)
+    setToDisable(true)
+  }
+  console.log('user Checkedbox ', checkedBox);
 
-                                checked={checkedState[idx2]}
-                                onChange={() => handleOnChange(idx2)}
+  const submitHandler = () => {
 
+  }
 
-                            />
-                        
-                        </div>
-                ))
-            : null
-            }
-            </Form>
-        </div>
-    );
+  return (
+    <>
+      <Container fluid="md" className="px-5">
+        <Status counter={counter + 1} questionLength={result.length} />
+
+        <h2 className="mt-5">{question.question}</h2>
+
+        <Form className="mt-4">
+          {question.answers.map((item, index) => (
+            <div key={index} className="mb-3">
+              <pre className="w-100">
+                <Form.Check
+                  className="mt-3"
+                  label={item.text}
+                  type="checkbox"
+                  disabled={toDisable}
+                  // disabled={isDisabled}
+                  // setIsChecked(!isChecked)
+                  // checked={!!checkedState[idx2]}
+                  // isValid={isCorrect[idx2]}
+                  isValid={!!isCorrect[index]}
+                  isInvalid={isCorrect.length > 1 ? !isCorrect[index] : false}
+                  onChange={() => {
+                    handleOnChange(index);
+                  }}
+                />
+              </pre>
+            </div>
+          ))}
+        </Form>
+        <Button
+          onClick={() => {
+           
+            !checkedBox.includes(true) ? alert('select at least one answer') : compareAnswers(correctAnswers, checkedBox)
+           // compareAnswers(correctAnswers, checkedBox)
+          
+          }
+
+          }
+        > < CheckIcon className="icon" /> Submit</Button>
+        <Button
+        className="mx-2 text-white"
+          onClick={() => {
+            setCounter(counter + 1)
+           
+              
+
+          }
+        }
+        > Next Question< NextIcon className="icon"/> </Button>
+      </Container>
+    </>
+  );
 }

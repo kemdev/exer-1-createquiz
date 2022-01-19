@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Question from "./Question";
 
 
-export default function Home() {
+export default function Home(props) {
     return (
         <Container fluid='md' className="pt-5  px-5" >
             <p>This is a quiz about HTML, CSS and JavaScript, that can be used to repeat all the basics that are needed in every's life of a web developer. </p>
